@@ -3,9 +3,10 @@ version: '3'
 volumes:
   recrutation_excercise_local_postgres_data: {}
   recrutation_excercise_local_postgres_data_backups: {}
+  redis-data:
 
 services:
-  django:
+  django: &django
     build:
       context: .
       dockerfile: ./compose/local/django/Dockerfile
@@ -13,6 +14,7 @@ services:
     container_name: recrutation_excercise_local_django
     depends_on:
       - postgres
+      - redis
     volumes:
       - .:/app:z
     env_file:
@@ -62,3 +64,41 @@ services:
     restart: always
     depends_on:
       - django
+
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+
+  celeryworker:
+    <<: *django
+    image: recrutation_excercise_local_celeryworker
+    container_name: recrutation_excercise_local_celeryworker
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celeryworker
+
+  celerybeat:
+    <<: *django
+    image: recrutation_excercise_local_celerybeat
+    container_name: recrutation_excercise_local_celerybeat
+    depends_on:
+      - redis
+      - postgres
+    ports: []
+    command: /start-celerybeat
+
+  flower:
+    <<: *django
+    image: recrutation_excercise_local_flower
+    container_name: recrutation_excercise_local_flower
+    ports:
+      - "5555:5555"
+    command: /start-flower

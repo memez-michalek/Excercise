@@ -1,5 +1,10 @@
+import uuid
+import datetime
 from django.db import models
+from celery.schedules import crontab
+from celery.task import periodic_task
 
+from django.db.models import F, ExpressionWrapper, BooleanField
 from recrutation_excercise.users.models import User
 
 # Create your models here.
@@ -42,3 +47,13 @@ class Thumbnail(models.Model):
 
     def __str__(self):
         return f"thumbnail: {self.id} with height: {self.height}"
+
+
+class Link(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+    thumbnail = models.ForeignKey(Thumbnail, on_delete=models.CASCADE, related_name="binary_link")
+    expiration_date = models.DateTimeField()
+    is_expired = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"link : {self.id} to thumbnail: {self.thumbnail}"

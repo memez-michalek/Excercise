@@ -1,7 +1,7 @@
 from django.urls import reverse
 from rest_framework import serializers
 
-from .models import Thumbnail
+from .models import Thumbnail, Link
 
 
 class CreateThumbnailSerializer(serializers.ModelSerializer):
@@ -34,3 +34,11 @@ class ThumbnailLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Thumbnail
         fields = ["id", "height", "image", "created_at", "owner"]
+
+
+class LinkSerializer(serializers.ModelSerializer):
+    
+
+    class Meta:
+        model = Link
+        fields = ["id", "thumbnail", "expiration_date", "is_expired"]
