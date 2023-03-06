@@ -2,12 +2,16 @@
 # Create your views here.
 import datetime
 import logging
-
-from django.shortcuts import get_object_or_404
+import os
 from PIL import Image as PILImage
+
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
+from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.core.files.storage import default_storage
 from django.http import HttpResponseForbidden, Http404
 
 from .models import Thumbnail, ThumbnailSize, Link
@@ -16,7 +20,8 @@ from .serializers import (
     CreateThumbnailSerializer,
     GetThumbnailSerializer,
     ThumbnailLinkSerializer,
-    LinkSerializer,
+    GetLinkSerializer,
+    UploadLinkSerializer,
 )
 from .utils import generate_thumbnail, generate_binary_image
 
@@ -106,15 +111,23 @@ class ThumbnailViewSet(viewsets.GenericViewSet):
         )
         return Response(data=serialized.data)
 
-class ExpirationLinkViewset(viewsets.GenericViewset):
+class ExpirationLinkViewset(viewsets.GenericViewSet):
     queryset = Link.objects.all()
-    permissions = [HasPlan, IsAuthenticated,]
+    #permissions = [HasPlan, IsAuthenticated]
+    serializer_class = UploadLinkSerializer
+
+    def get_serializer_class(self):
+        if self.action == "create":
+            return UploadLinkSerializer
+        else:
+            return GetLinkSerializer
 
 
-    def retrive(self, request, slug=None, *args, **kwargs):
+    def retrieve(self, request, slug=None, *args, **kwargs):
         try: 
             link = Link.objects.get(id=slug)
-            if link.is_expired ==  True:
+            if link.expiration_date < datetime.datetime.now():
+                link.delete()
                 return Http404("Link is expired")
             else:
                 serialized = GetThumbnailSerializer(link.thumbnail)
@@ -126,28 +139,44 @@ class ExpirationLinkViewset(viewsets.GenericViewset):
     def create(self, request, *args, **kwargs):
         user = request.user.profile
         plan = user.plan
-        image = request.data.get("image")
-        time = request.data.get("time")
-        time_delta = datetime.timedelta(seconds=time)
-        _, height = PILImage.open(image).size
+        thumbnail =request.data.get('thumbnail')
+        queryset = Thumbnail.objects.all()
+        image = get_object_or_404(
+            queryset,
+            id=thumbnail,
+            owner=user
+        )
 
-        if plan.can_generate_expiring_links:
-            binary_image = generate_binary_image(image)
-            binary_thumbnail = Thumbnail.objects.create(
-                height=height,
-                image=binary_image,
-                created_at=datetime.datetime.now(),
-                owner=user,
-            )
-            generated_link = Link.objects.create(
-                thumbnail=binary_thumbnail,
-                expiration_date = datetime.datetime.now() + time_delta,
-                is_expired=False,
-            )
-            serialized = LinkSerializer(generated_link)
-            return Response(data=serialized.data)
 
-        else:
+        time = request.data.get("expiration_date")
+        time_delta = datetime.timedelta(seconds=int(time))
+        file_path = default_storage.path(image.image.name)
+        relative_path = os.path.relpath(file_path, "media")
+
+
+        file_path = os.path.join("../recrutation_excercise/media/thumbnails/",  image.image.name)
+        with open(file_path, 'rb') as file:
+            _, height = PILImage.open(file).size
+
+        if not plan.can_generate_expiring_links:
             return HttpResponseForbidden()
+
+       
+        binary_image = generate_binary_image(file)
+        binary_thumbnail = Thumbnail.objects.create(
+            height=height,
+            image=binary_image,
+            created_at=datetime.datetime.now(),
+            owner=user,
+        )
+        generated_link = Link.objects.create(
+            thumbnail=binary_thumbnail,
+            expiration_date = datetime.datetime.now() + time_delta,
+            is_expired=False,
+        )
+        serialized = GetLinkSerializer(generated_link)
+        return Response(data=serialized.data)
+
+
 
 

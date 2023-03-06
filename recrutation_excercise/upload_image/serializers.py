@@ -36,9 +36,13 @@ class ThumbnailLinkSerializer(serializers.ModelSerializer):
         fields = ["id", "height", "image", "created_at", "owner"]
 
 
-class LinkSerializer(serializers.ModelSerializer):
-    
+class UploadLinkSerializer(serializers.ModelSerializer):
+    expiration_date = serializers.IntegerField(min_value=30, max_value=30000)
+    class Meta:
+        model = Link
+        fields = ["id", "thumbnail", "expiration_date"]
 
+class GetLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = Link
         fields = ["id", "thumbnail", "expiration_date", "is_expired"]

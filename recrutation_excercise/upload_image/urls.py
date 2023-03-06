@@ -19,13 +19,13 @@ urlpatterns = [
         name="image-detail",
     ),
     path(
-        "image/<int:pk>/fetch_link",
-        ExpirationLinkViewset.as_view({"post", "create"}),
+        "image/<int:pk>/fetch_link/",
+        ExpirationLinkViewset.as_view({"post": "create"}),
         name="fetch-image",
     ),
     path(
         "binary_image/<slug:slug>/",
-        ExpirationLinkViewset.as_view({"get", "retrieve"}),
+        ExpirationLinkViewset.as_view({"get": "retrieve"}),
         name="binary-image-detail",
     )
 ]

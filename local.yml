@@ -75,30 +75,30 @@ services:
       - redis-data:/data
 
 
-  celeryworker:
-    <<: *django
-    image: recrutation_excercise_local_celeryworker
-    container_name: recrutation_excercise_local_celeryworker
-    depends_on:
-      - redis
-      - postgres
-    ports: []
-    command: /start-celeryworker
+  # celeryworker:
+  #   <<: *django
+  #   image: recrutation_excercise_local_celeryworker
+  #   container_name: recrutation_excercise_local_celeryworker
+  #   depends_on:
+  #     - redis
+  #     - postgres
+  #   ports: []
+  #   command: /start-celeryworker
 
-  celerybeat:
-    <<: *django
-    image: recrutation_excercise_local_celerybeat
-    container_name: recrutation_excercise_local_celerybeat
-    depends_on:
-      - redis
-      - postgres
-    ports: []
-    command: /start-celerybeat
+  # celerybeat:
+  #   <<: *django
+  #   image: recrutation_excercise_local_celerybeat
+  #   container_name: recrutation_excercise_local_celerybeat
+  #   depends_on:
+  #     - redis
+  #     - postgres
+  #   ports: []
+  #   command: /start-celerybeat
 
-  flower:
-    <<: *django
-    image: recrutation_excercise_local_flower
-    container_name: recrutation_excercise_local_flower
-    ports:
-      - "5555:5555"
-    command: /start-flower
+  # flower:
+  #   <<: *django
+  #   image: recrutation_excercise_local_flower
+  #   container_name: recrutation_excercise_local_flower
+  #   ports:
+  #     - "5555:5555"
+  #   command: /start-flower

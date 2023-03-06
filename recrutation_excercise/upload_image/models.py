@@ -1,10 +1,7 @@
 import uuid
-import datetime
 from django.db import models
-from celery.schedules import crontab
-from celery.task import periodic_task
 
-from django.db.models import F, ExpressionWrapper, BooleanField
+#from django.db.models import F, ExpressionWrapper, BooleanField
 from recrutation_excercise.users.models import User
 
 # Create your models here.

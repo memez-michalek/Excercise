@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Plan, Profile, Thumbnail, ThumbnailSize
+from .models import Plan, Profile, Thumbnail, ThumbnailSize, Link
 
 # Register your models here.
 
@@ -52,3 +52,12 @@ class ThumbnailSizeAdmin(admin.ModelAdmin):
     search_fields = [
         "plan__name",
     ]
+
+@admin.register(Link)
+class LinkAdmin(admin.ModelAdmin):
+    list_display = ["id", "thumbnail", "expiration_date", "is_expired"]
+    list_filter = ["expiration_date"]
+    search_fields = [
+        "plan__owner__username",
+    ]
+
